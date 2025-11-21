@@ -68,22 +68,32 @@ export default function TrackingPage() {
     if (!selectedVehicle) return;
     try {
       const data = await gpsLocationService.getLatest(selectedVehicle);
+      console.log('Latest location loaded:', data);
       setLatestLocation(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading latest location:', error);
+      // If no location found, set to null (marker won't show)
+      if (error.response?.status === 404) {
+        console.log('No location found for this vehicle yet');
+        setLatestLocation(null);
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log('Submitting location:', formData);
       await gpsLocationService.create(formData);
-      alert('Location updated successfully');
+      alert('Location updated successfully! Marker should appear on map.');
+      // Keep vehicle selected but reset coordinates
       setFormData({ ...formData, latitude: 0, longitude: 0, speed: 0, direction: 0 });
-      loadLocations();
-      loadLatestLocation();
+      // Reload to show new marker
+      await loadLocations();
+      await loadLatestLocation();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error updating location');
+      console.error('Error updating location:', error);
+      alert(error.response?.data?.message || 'Error updating location. Check console for details.');
     }
   };
 
@@ -172,7 +182,8 @@ export default function TrackingPage() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {latestLocation && (
+            {/* Show latest location marker */}
+            {latestLocation && latestLocation.latitude !== 0 && latestLocation.longitude !== 0 && (
               <Marker position={[latestLocation.latitude, latestLocation.longitude]}>
                 <Popup>
                   <div>
@@ -180,11 +191,39 @@ export default function TrackingPage() {
                     <br />
                     Speed: {latestLocation.speed || 0} km/h
                     <br />
+                    Direction: {latestLocation.direction || 0}°
+                    <br />
                     Updated: {new Date(latestLocation.timestamp).toLocaleString()}
                   </div>
                 </Popup>
               </Marker>
             )}
+            {/* Show all location history markers (optional - can be enabled) */}
+            {locations.length > 0 && locations.slice(0, 5).map((location, index) => {
+              // Skip if it's the same as latestLocation
+              if (latestLocation && location.id === latestLocation.id) return null;
+              // Skip if coordinates are invalid
+              if (location.latitude === 0 && location.longitude === 0) return null;
+              return (
+                <Marker 
+                  key={location.id} 
+                  position={[location.latitude, location.longitude]}
+                  opacity={0.6}
+                >
+                  <Popup>
+                    <div>
+                      <strong>{location.vehicleLicensePlate}</strong>
+                      <br />
+                      Speed: {location.speed || 0} km/h
+                      <br />
+                      Time: {new Date(location.timestamp).toLocaleString()}
+                      <br />
+                      <small>(History #{index + 1})</small>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         </div>
       </div>
