@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { routeService } from '../services/routeService';
+import { gpsLocationService } from '../services/gpsLocationService';
 import { Route } from '../types/route';
 
 export default function ReportsPage() {
@@ -19,6 +20,29 @@ export default function ReportsPage() {
       alert('Error loading routes');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEndRoute = async (route: Route) => {
+    if (!confirm(`End route for vehicle ${route.vehicleLicensePlate}?`)) {
+      return;
+    }
+
+    try {
+      // Get the latest location for this vehicle to use as end location
+      const latestLocation = await gpsLocationService.getLatest(route.vehicleId);
+      
+      if (!latestLocation || !latestLocation.id) {
+        alert('No location found for this vehicle. Please add a GPS location first.');
+        return;
+      }
+
+      await routeService.endRoute(route.id, latestLocation.id);
+      alert('Route ended successfully! Distance calculated.');
+      loadRoutes(); // Reload to show updated status
+    } catch (error: any) {
+      console.error('Error ending route:', error);
+      alert(error.response?.data?.message || 'Error ending route. Make sure the vehicle has GPS locations.');
     }
   };
 
@@ -64,6 +88,7 @@ export default function ReportsPage() {
               <th>End Time</th>
               <th>Distance</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -74,7 +99,32 @@ export default function ReportsPage() {
                 <td>{new Date(route.startTime).toLocaleString()}</td>
                 <td>{route.endTime ? new Date(route.endTime).toLocaleString() : '-'}</td>
                 <td>{route.distanceKm ? `${route.distanceKm.toFixed(2)} km` : '-'}</td>
-                <td>{route.status}</td>
+                <td>
+                  <span style={{
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    backgroundColor: route.status === 'COMPLETED' ? '#27ae60' : '#f39c12',
+                    color: 'white'
+                  }}>
+                    {route.status}
+                  </span>
+                </td>
+                <td>
+                  {route.status === 'IN_PROGRESS' && (
+                    <button
+                      className="btn btn-success"
+                      onClick={() => handleEndRoute(route)}
+                      style={{ fontSize: '12px', padding: '5px 10px' }}
+                    >
+                      End Route
+                    </button>
+                  )}
+                  {route.status === 'COMPLETED' && (
+                    <span style={{ color: '#7f8c8d', fontSize: '12px' }}>-</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
