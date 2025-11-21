@@ -185,3 +185,5 @@ GPS Device → End Route → routes table
    - Only ACTIVE vehicles/drivers appear in active lists
    - Inactive records are preserved for history
 
+
+

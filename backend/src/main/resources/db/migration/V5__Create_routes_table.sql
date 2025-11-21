@@ -15,3 +15,5 @@ CREATE INDEX idx_routes_start_time ON routes(start_time);
 CREATE INDEX idx_routes_vehicle_id ON routes(vehicle_id);
 CREATE INDEX idx_routes_driver_id ON routes(driver_id);
 
+
+

@@ -14,3 +14,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
     List<Vehicle> findByStatus(String status);
 }
 
+
+

@@ -16,3 +16,5 @@ public interface VehicleDriverAssignmentRepository extends JpaRepository<Vehicle
     List<VehicleDriverAssignment> findByDriverId(UUID driverId);
 }
 
+
+

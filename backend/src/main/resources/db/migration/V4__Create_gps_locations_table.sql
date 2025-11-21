@@ -13,3 +13,5 @@ CREATE INDEX idx_gps_locations_vehicle_timestamp ON gps_locations(vehicle_id, ti
 CREATE INDEX idx_gps_locations_timestamp ON gps_locations(timestamp);
 CREATE INDEX idx_gps_locations_vehicle_id ON gps_locations(vehicle_id);
 
+
+

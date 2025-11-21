@@ -17,3 +17,5 @@ CREATE UNIQUE INDEX idx_assignments_unique_active_vehicle
 ON vehicle_driver_assignments(vehicle_id) 
 WHERE is_active = TRUE;
 
+
+

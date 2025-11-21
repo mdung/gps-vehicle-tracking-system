@@ -26,3 +26,5 @@ public interface GpsLocationRepository extends JpaRepository<GpsLocation, UUID> 
     );
 }
 
+
+

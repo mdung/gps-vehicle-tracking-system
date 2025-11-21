@@ -14,3 +14,5 @@ public interface DriverRepository extends JpaRepository<Driver, UUID> {
     List<Driver> findByStatus(String status);
 }
 
+
+

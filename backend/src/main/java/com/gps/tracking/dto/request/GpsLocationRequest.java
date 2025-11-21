@@ -23,3 +23,5 @@ public class GpsLocationRequest {
     private LocalDateTime timestamp;
 }
 
+
+

@@ -17,3 +17,5 @@ public class VehicleRequest {
     private String status = "ACTIVE";
 }
 
+
+

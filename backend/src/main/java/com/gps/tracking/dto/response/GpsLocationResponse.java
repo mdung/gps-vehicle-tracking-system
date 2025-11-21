@@ -23,3 +23,5 @@ public class GpsLocationResponse {
     private LocalDateTime createdAt;
 }
 
+
+

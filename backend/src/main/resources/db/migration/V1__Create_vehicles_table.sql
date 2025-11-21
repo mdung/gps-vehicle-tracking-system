@@ -11,3 +11,5 @@ CREATE TABLE IF NOT EXISTS vehicles (
 CREATE INDEX idx_vehicles_status ON vehicles(status);
 CREATE INDEX idx_vehicles_license_plate ON vehicles(license_plate);
 
+
+

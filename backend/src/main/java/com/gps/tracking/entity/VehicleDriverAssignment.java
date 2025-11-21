@@ -36,3 +36,5 @@ public class VehicleDriverAssignment {
     private Boolean isActive = true;
 }
 
+
+

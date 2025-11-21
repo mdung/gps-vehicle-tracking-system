@@ -20,11 +20,21 @@ export default function VehiclesPage() {
 
   const loadVehicles = async () => {
     try {
+      console.log('Loading vehicles...');
       const data = await vehicleService.getAll();
-      setVehicles(data);
-    } catch (error) {
+      console.log('Vehicles loaded:', data);
+      console.log('Number of vehicles:', data?.length);
+      setVehicles(data || []);
+    } catch (error: any) {
       console.error('Error loading vehicles:', error);
-      alert('Error loading vehicles');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+        stack: error.stack
+      });
+      alert(`Error loading vehicles: ${error.message || 'Unknown error'}\nCheck console for details.`);
     } finally {
       setLoading(false);
     }
@@ -165,4 +175,6 @@ export default function VehiclesPage() {
     </div>
   );
 }
+
+
 

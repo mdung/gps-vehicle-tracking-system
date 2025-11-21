@@ -12,3 +12,5 @@ CREATE TABLE IF NOT EXISTS drivers (
 CREATE INDEX idx_drivers_status ON drivers(status);
 CREATE INDEX idx_drivers_license_number ON drivers(license_number);
 
+
+
