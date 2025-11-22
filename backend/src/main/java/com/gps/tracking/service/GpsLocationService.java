@@ -67,6 +67,7 @@ public class GpsLocationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public GpsLocationResponse getLatestLocationByVehicle(UUID vehicleId) {
         GpsLocation location = locationRepository.findLatestByVehicleId(vehicleId)
                 .orElseThrow(() -> new ResourceNotFoundException("No location found for vehicle: " + vehicleId));

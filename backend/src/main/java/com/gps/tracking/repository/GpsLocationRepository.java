@@ -15,8 +15,13 @@ import java.util.UUID;
 public interface GpsLocationRepository extends JpaRepository<GpsLocation, UUID> {
     List<GpsLocation> findByVehicleIdOrderByTimestampDesc(UUID vehicleId);
     
-    @Query("SELECT g FROM GpsLocation g WHERE g.vehicle.id = :vehicleId ORDER BY g.timestamp DESC")
-    Optional<GpsLocation> findLatestByVehicleId(@Param("vehicleId") UUID vehicleId);
+    @Query("SELECT g FROM GpsLocation g JOIN FETCH g.vehicle WHERE g.vehicle.id = :vehicleId ORDER BY g.timestamp DESC")
+    List<GpsLocation> findLatestByVehicleIdList(@Param("vehicleId") UUID vehicleId);
+    
+    default Optional<GpsLocation> findLatestByVehicleId(UUID vehicleId) {
+        List<GpsLocation> locations = findLatestByVehicleIdList(vehicleId);
+        return locations.isEmpty() ? Optional.empty() : Optional.of(locations.get(0));
+    }
     
     @Query("SELECT g FROM GpsLocation g WHERE g.vehicle.id = :vehicleId AND g.timestamp BETWEEN :startTime AND :endTime ORDER BY g.timestamp DESC")
     List<GpsLocation> findByVehicleIdAndTimestampBetween(

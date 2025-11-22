@@ -45,15 +45,21 @@ public class RouteService {
         Route route = routeRepository.findById(routeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Route not found with id: " + routeId));
 
+        // Validate end location exists
         GpsLocation endLocation = locationRepository.findById(endLocationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Location not found with id: " + endLocationId));
+
+        // Validate that end location belongs to the same vehicle as the route
+        if (!endLocation.getVehicle().getId().equals(route.getVehicle().getId())) {
+            throw new IllegalArgumentException("End location does not belong to the route's vehicle");
+        }
 
         route.setEndLocation(endLocation);
         route.setEndTime(LocalDateTime.now());
         route.setStatus("COMPLETED");
 
         // Calculate distance if start location exists
-        if (route.getStartLocation() != null) {
+        if (route.getStartLocation() != null && endLocation != null) {
             BigDecimal distance = calculateDistance(
                     route.getStartLocation().getLatitude().doubleValue(),
                     route.getStartLocation().getLongitude().doubleValue(),
@@ -61,6 +67,9 @@ public class RouteService {
                     endLocation.getLongitude().doubleValue()
             );
             route.setDistanceKm(distance);
+        } else {
+            // If no start location, set distance to 0
+            route.setDistanceKm(BigDecimal.ZERO);
         }
 
         return toResponse(routeRepository.save(route));

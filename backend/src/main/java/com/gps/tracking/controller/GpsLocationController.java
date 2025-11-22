@@ -2,6 +2,7 @@ package com.gps.tracking.controller;
 
 import com.gps.tracking.dto.request.GpsLocationRequest;
 import com.gps.tracking.dto.response.GpsLocationResponse;
+import com.gps.tracking.exception.ResourceNotFoundException;
 import com.gps.tracking.service.GpsLocationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,11 @@ public class GpsLocationController {
 
     @GetMapping("/vehicle/{vehicleId}/latest")
     public ResponseEntity<GpsLocationResponse> getLatestLocation(@PathVariable UUID vehicleId) {
-        return ResponseEntity.ok(locationService.getLatestLocationByVehicle(vehicleId));
+        try {
+            return ResponseEntity.ok(locationService.getLatestLocationByVehicle(vehicleId));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @GetMapping("/vehicle/{vehicleId}/history")

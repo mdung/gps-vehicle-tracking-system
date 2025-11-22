@@ -29,15 +29,32 @@ export default function ReportsPage() {
     }
 
     try {
-      // Get the latest location for this vehicle to use as end location
-      const latestLocation = await gpsLocationService.getLatest(route.vehicleId);
+      let endLocationId: string;
       
-      if (!latestLocation || !latestLocation.id) {
-        alert('No location found for this vehicle. Please add a GPS location first.');
-        return;
+      // Try to get the latest location for this vehicle
+      try {
+        const latestLocation = await gpsLocationService.getLatest(route.vehicleId);
+        if (latestLocation && latestLocation.id) {
+          endLocationId = latestLocation.id;
+        } else {
+          // If no latest location, use start location if available
+          if (route.startLocationId) {
+            endLocationId = route.startLocationId;
+          } else {
+            alert('No location found for this vehicle. Please add a GPS location first.');
+            return;
+          }
+        }
+      } catch (error: any) {
+        // If getLatest fails (404), try to use start location
+        if (error.response?.status === 404 && route.startLocationId) {
+          endLocationId = route.startLocationId;
+        } else {
+          throw error;
+        }
       }
 
-      await routeService.endRoute(route.id, latestLocation.id);
+      await routeService.endRoute(route.id, endLocationId);
       alert('Route ended successfully! Distance calculated.');
       loadRoutes(); // Reload to show updated status
     } catch (error: any) {
