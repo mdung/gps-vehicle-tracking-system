@@ -60,10 +60,13 @@ public class RouteService {
         route.setStatus("COMPLETED");
 
         // Calculate total traveled distance using all GPS locations in the route
+        // Include start location explicitly to ensure it's included in calculation
         BigDecimal totalDistance = calculateTotalTraveledDistance(
                 route.getVehicle().getId(),
                 route.getStartTime(),
-                endTime
+                endTime,
+                route.getStartLocation(),
+                endLocation
         );
         route.setDistanceKm(totalDistance);
 
@@ -93,25 +96,67 @@ public class RouteService {
      * Calculate total traveled distance by summing distances between consecutive GPS locations
      * This gives the actual traveled distance, not just straight-line distance
      */
-    private BigDecimal calculateTotalTraveledDistance(UUID vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+    private BigDecimal calculateTotalTraveledDistance(UUID vehicleId, LocalDateTime startTime, LocalDateTime endTime, 
+                                                      GpsLocation startLocation, GpsLocation endLocation) {
         // Get all GPS locations for this vehicle during the route period, ordered by timestamp
+        // BETWEEN is inclusive in PostgreSQL, but we'll ensure start and end are included
         List<GpsLocation> locations = locationRepository.findByVehicleIdAndTimestampBetween(
                 vehicleId,
                 startTime,
                 endTime
         );
 
+        // Build a complete list ensuring start and end locations are included
+        java.util.Set<UUID> locationIds = new java.util.HashSet<>();
+        java.util.List<GpsLocation> allLocations = new java.util.ArrayList<>();
+        
+        // Add start location if not already in the list
+        if (startLocation != null) {
+            allLocations.add(startLocation);
+            locationIds.add(startLocation.getId());
+        }
+        
+        // Add all locations from query that are not start/end
+        for (GpsLocation loc : locations) {
+            if (!locationIds.contains(loc.getId())) {
+                // Only add if it's not the start or end location (to avoid duplicates)
+                if (!loc.getId().equals(startLocation != null ? startLocation.getId() : null) &&
+                    !loc.getId().equals(endLocation != null ? endLocation.getId() : null)) {
+                    allLocations.add(loc);
+                    locationIds.add(loc.getId());
+                }
+            }
+        }
+        
+        // Add end location if not already in the list
+        if (endLocation != null && !locationIds.contains(endLocation.getId())) {
+            allLocations.add(endLocation);
+        }
+
         // If no locations or only one location, return 0
-        if (locations.isEmpty() || locations.size() < 2) {
+        if (allLocations.isEmpty() || allLocations.size() < 2) {
             return BigDecimal.ZERO;
         }
 
-        // Locations are already ordered by timestamp ASC from the query
+        // Ensure locations are sorted by timestamp
+        allLocations.sort((l1, l2) -> l1.getTimestamp().compareTo(l2.getTimestamp()));
+
+        // Log for debugging
+        System.out.println("=== Distance Calculation Debug ===");
+        System.out.println("Total locations found: " + allLocations.size());
+        System.out.println("Start time: " + startTime);
+        System.out.println("End time: " + endTime);
+        for (int i = 0; i < allLocations.size(); i++) {
+            GpsLocation loc = allLocations.get(i);
+            System.out.println(String.format("Location %d: Lat=%.6f, Lng=%.6f, Time=%s", 
+                i + 1, loc.getLatitude().doubleValue(), loc.getLongitude().doubleValue(), loc.getTimestamp()));
+        }
+
         // Calculate distance between each consecutive pair of locations
         BigDecimal totalDistance = BigDecimal.ZERO;
-        for (int i = 0; i < locations.size() - 1; i++) {
-            GpsLocation current = locations.get(i);
-            GpsLocation next = locations.get(i + 1);
+        for (int i = 0; i < allLocations.size() - 1; i++) {
+            GpsLocation current = allLocations.get(i);
+            GpsLocation next = allLocations.get(i + 1);
 
             double segmentDistance = distance(
                     current.getLatitude().doubleValue(),
@@ -120,8 +165,12 @@ public class RouteService {
                     next.getLongitude().doubleValue()
             );
 
+            System.out.println(String.format("Segment %d->%d: %.2f km", i + 1, i + 2, segmentDistance));
             totalDistance = totalDistance.add(BigDecimal.valueOf(segmentDistance));
         }
+
+        System.out.println("Total distance: " + totalDistance + " km");
+        System.out.println("===================================");
 
         return totalDistance;
     }
