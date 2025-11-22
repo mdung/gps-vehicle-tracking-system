@@ -55,22 +55,17 @@ public class RouteService {
         }
 
         route.setEndLocation(endLocation);
-        route.setEndTime(LocalDateTime.now());
+        LocalDateTime endTime = LocalDateTime.now();
+        route.setEndTime(endTime);
         route.setStatus("COMPLETED");
 
-        // Calculate distance if start location exists
-        if (route.getStartLocation() != null && endLocation != null) {
-            BigDecimal distance = calculateDistance(
-                    route.getStartLocation().getLatitude().doubleValue(),
-                    route.getStartLocation().getLongitude().doubleValue(),
-                    endLocation.getLatitude().doubleValue(),
-                    endLocation.getLongitude().doubleValue()
-            );
-            route.setDistanceKm(distance);
-        } else {
-            // If no start location, set distance to 0
-            route.setDistanceKm(BigDecimal.ZERO);
-        }
+        // Calculate total traveled distance using all GPS locations in the route
+        BigDecimal totalDistance = calculateTotalTraveledDistance(
+                route.getVehicle().getId(),
+                route.getStartTime(),
+                endTime
+        );
+        route.setDistanceKm(totalDistance);
 
         return toResponse(routeRepository.save(route));
     }
@@ -92,6 +87,43 @@ public class RouteService {
 
     private BigDecimal calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         return BigDecimal.valueOf(distance(lat1, lon1, lat2, lon2));
+    }
+
+    /**
+     * Calculate total traveled distance by summing distances between consecutive GPS locations
+     * This gives the actual traveled distance, not just straight-line distance
+     */
+    private BigDecimal calculateTotalTraveledDistance(UUID vehicleId, LocalDateTime startTime, LocalDateTime endTime) {
+        // Get all GPS locations for this vehicle during the route period, ordered by timestamp
+        List<GpsLocation> locations = locationRepository.findByVehicleIdAndTimestampBetween(
+                vehicleId,
+                startTime,
+                endTime
+        );
+
+        // If no locations or only one location, return 0
+        if (locations.isEmpty() || locations.size() < 2) {
+            return BigDecimal.ZERO;
+        }
+
+        // Locations are already ordered by timestamp ASC from the query
+        // Calculate distance between each consecutive pair of locations
+        BigDecimal totalDistance = BigDecimal.ZERO;
+        for (int i = 0; i < locations.size() - 1; i++) {
+            GpsLocation current = locations.get(i);
+            GpsLocation next = locations.get(i + 1);
+
+            double segmentDistance = distance(
+                    current.getLatitude().doubleValue(),
+                    current.getLongitude().doubleValue(),
+                    next.getLatitude().doubleValue(),
+                    next.getLongitude().doubleValue()
+            );
+
+            totalDistance = totalDistance.add(BigDecimal.valueOf(segmentDistance));
+        }
+
+        return totalDistance;
     }
 
     private RouteResponse toResponse(Route route) {

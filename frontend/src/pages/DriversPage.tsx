@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { driverService } from '../services/driverService';
 import { Driver, DriverRequest } from '../types/driver';
+import { useConfirm } from '../hooks/useConfirm';
+import { useToast } from '../hooks/useToast';
+import ConfirmDialog from '../components/ConfirmDialog';
+import Toast from '../components/Toast';
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+  const { confirm, confirmState } = useConfirm();
+  const { toast, showToast, hideToast } = useToast();
   const [formData, setFormData] = useState<DriverRequest>({
     name: '',
     licenseNumber: '',
@@ -25,7 +31,7 @@ export default function DriversPage() {
       setDrivers(data);
     } catch (error) {
       console.error('Error loading drivers:', error);
-      alert('Error loading drivers');
+      showToast('Error loading drivers', 'error');
     } finally {
       setLoading(false);
     }
@@ -42,9 +48,10 @@ export default function DriversPage() {
       setShowForm(false);
       setEditingDriver(null);
       setFormData({ name: '', licenseNumber: '', phone: '', email: '', status: 'ACTIVE' });
+      showToast(editingDriver ? 'Driver updated successfully!' : 'Driver created successfully!', 'success');
       loadDrivers();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error saving driver');
+      showToast(error.response?.data?.message || 'Error saving driver', 'error');
     }
   };
 
@@ -61,12 +68,23 @@ export default function DriversPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this driver?')) return;
+    const driver = drivers.find(d => d.id === id);
+    const confirmed = await confirm({
+      title: 'Delete Driver?',
+      message: `Are you sure you want to delete driver "${driver?.name}"?\n\nThis action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+    
+    if (!confirmed) return;
+    
     try {
       await driverService.delete(id);
+      showToast('Driver deleted successfully!', 'success');
       loadDrivers();
     } catch (error) {
-      alert('Error deleting driver');
+      showToast('Error deleting driver', 'error');
     }
   };
 
@@ -76,6 +94,23 @@ export default function DriversPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.options?.title || ''}
+        message={confirmState.options?.message || ''}
+        confirmText={confirmState.options?.confirmText}
+        cancelText={confirmState.options?.cancelText}
+        type={confirmState.options?.type}
+        onConfirm={() => confirmState.onConfirm?.()}
+        onCancel={() => confirmState.onCancel?.()}
+      />
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>Drivers</h2>
         <button className="btn btn-primary" onClick={() => { setShowForm(true); setEditingDriver(null); setFormData({ name: '', licenseNumber: '', phone: '', email: '', status: 'ACTIVE' }); }}>

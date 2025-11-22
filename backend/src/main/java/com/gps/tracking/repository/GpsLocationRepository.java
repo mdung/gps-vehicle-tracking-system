@@ -23,7 +23,7 @@ public interface GpsLocationRepository extends JpaRepository<GpsLocation, UUID> 
         return locations.isEmpty() ? Optional.empty() : Optional.of(locations.get(0));
     }
     
-    @Query("SELECT g FROM GpsLocation g WHERE g.vehicle.id = :vehicleId AND g.timestamp BETWEEN :startTime AND :endTime ORDER BY g.timestamp DESC")
+    @Query("SELECT g FROM GpsLocation g WHERE g.vehicle.id = :vehicleId AND g.timestamp BETWEEN :startTime AND :endTime ORDER BY g.timestamp ASC")
     List<GpsLocation> findByVehicleIdAndTimestampBetween(
         @Param("vehicleId") UUID vehicleId,
         @Param("startTime") LocalDateTime startTime,

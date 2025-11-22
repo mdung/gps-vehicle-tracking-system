@@ -2,10 +2,16 @@ import { useEffect, useState } from 'react';
 import { routeService } from '../services/routeService';
 import { gpsLocationService } from '../services/gpsLocationService';
 import { Route } from '../types/route';
+import { useConfirm } from '../hooks/useConfirm';
+import { useToast } from '../hooks/useToast';
+import ConfirmDialog from '../components/ConfirmDialog';
+import Toast from '../components/Toast';
 
 export default function ReportsPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
+  const { confirm, confirmState } = useConfirm();
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     loadRoutes();
@@ -17,14 +23,22 @@ export default function ReportsPage() {
       setRoutes(data);
     } catch (error) {
       console.error('Error loading routes:', error);
-      alert('Error loading routes');
+      showToast('Error loading routes', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEndRoute = async (route: Route) => {
-    if (!confirm(`End route for vehicle ${route.vehicleLicensePlate}?`)) {
+    const confirmed = await confirm({
+      title: 'End Route?',
+      message: `Are you sure you want to end the route for vehicle "${route.vehicleLicensePlate}"?\n\nThis will calculate the total distance traveled.`,
+      confirmText: 'Yes, End Route',
+      cancelText: 'Cancel',
+      type: 'info',
+    });
+    
+    if (!confirmed) {
       return;
     }
 
@@ -41,7 +55,7 @@ export default function ReportsPage() {
           if (route.startLocationId) {
             endLocationId = route.startLocationId;
           } else {
-            alert('No location found for this vehicle. Please add a GPS location first.');
+            showToast('No location found for this vehicle. Please add a GPS location first.', 'warning');
             return;
           }
         }
@@ -55,11 +69,11 @@ export default function ReportsPage() {
       }
 
       await routeService.endRoute(route.id, endLocationId);
-      alert('Route ended successfully! Distance calculated.');
+      showToast('Route ended successfully! Distance calculated.', 'success');
       loadRoutes(); // Reload to show updated status
     } catch (error: any) {
       console.error('Error ending route:', error);
-      alert(error.response?.data?.message || 'Error ending route. Make sure the vehicle has GPS locations.');
+      showToast(error.response?.data?.message || 'Error ending route. Make sure the vehicle has GPS locations.', 'error');
     }
   };
 
@@ -73,6 +87,23 @@ export default function ReportsPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.options?.title || ''}
+        message={confirmState.options?.message || ''}
+        confirmText={confirmState.options?.confirmText}
+        cancelText={confirmState.options?.cancelText}
+        type={confirmState.options?.type}
+        onConfirm={() => confirmState.onConfirm?.()}
+        onCancel={() => confirmState.onCancel?.()}
+      />
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+      
       <h2>Reports</h2>
 
       <div className="stats-grid">

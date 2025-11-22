@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { vehicleService } from '../services/vehicleService';
 import { Vehicle, VehicleRequest } from '../types/vehicle';
+import { useConfirm } from '../hooks/useConfirm';
+import { useToast } from '../hooks/useToast';
+import ConfirmDialog from '../components/ConfirmDialog';
+import Toast from '../components/Toast';
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const { confirm, confirmState } = useConfirm();
+  const { toast, showToast, hideToast } = useToast();
   const [formData, setFormData] = useState<VehicleRequest>({
     licensePlate: '',
     model: '',
@@ -34,7 +40,7 @@ export default function VehiclesPage() {
         data: error.response?.data,
         stack: error.stack
       });
-      alert(`Error loading vehicles: ${error.message || 'Unknown error'}\nCheck console for details.`);
+      showToast(`Error loading vehicles: ${error.message || 'Unknown error'}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -51,9 +57,10 @@ export default function VehiclesPage() {
       setShowForm(false);
       setEditingVehicle(null);
       setFormData({ licensePlate: '', model: '', vehicleType: '', status: 'ACTIVE' });
+      showToast(editingVehicle ? 'Vehicle updated successfully!' : 'Vehicle created successfully!', 'success');
       loadVehicles();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error saving vehicle');
+      showToast(error.response?.data?.message || 'Error saving vehicle', 'error');
     }
   };
 
@@ -69,12 +76,23 @@ export default function VehiclesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+    const vehicle = vehicles.find(v => v.id === id);
+    const confirmed = await confirm({
+      title: 'Delete Vehicle?',
+      message: `Are you sure you want to delete vehicle "${vehicle?.licensePlate}"?\n\nThis action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+    
+    if (!confirmed) return;
+    
     try {
       await vehicleService.delete(id);
+      showToast('Vehicle deleted successfully!', 'success');
       loadVehicles();
     } catch (error) {
-      alert('Error deleting vehicle');
+      showToast('Error deleting vehicle', 'error');
     }
   };
 
@@ -84,6 +102,22 @@ export default function VehiclesPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.options?.title || ''}
+        message={confirmState.options?.message || ''}
+        confirmText={confirmState.options?.confirmText}
+        cancelText={confirmState.options?.cancelText}
+        type={confirmState.options?.type}
+        onConfirm={() => confirmState.onConfirm?.()}
+        onCancel={() => confirmState.onCancel?.()}
+      />
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>Vehicles</h2>
         <button className="btn btn-primary" onClick={() => { setShowForm(true); setEditingVehicle(null); setFormData({ licensePlate: '', model: '', vehicleType: '', status: 'ACTIVE' }); }}>

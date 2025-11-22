@@ -9,6 +9,7 @@ import com.gps.tracking.exception.ResourceNotFoundException;
 import com.gps.tracking.repository.GpsLocationRepository;
 import com.gps.tracking.repository.RouteRepository;
 import com.gps.tracking.repository.VehicleRepository;
+import com.gps.tracking.repository.VehicleDriverAssignmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class GpsLocationService {
     private final GpsLocationRepository locationRepository;
     private final VehicleRepository vehicleRepository;
     private final RouteRepository routeRepository;
+    private final VehicleDriverAssignmentRepository assignmentRepository;
     private final WebSocketService webSocketService;
 
     @Transactional
@@ -50,6 +52,13 @@ public class GpsLocationService {
                     route.setStartLocation(saved);
                     route.setStartTime(saved.getTimestamp());
                     route.setStatus("IN_PROGRESS");
+                    
+                    // Assign active driver to route if available
+                    assignmentRepository.findByVehicleIdAndIsActiveTrue(request.getVehicleId())
+                            .ifPresent(assignment -> {
+                                route.setDriver(assignment.getDriver());
+                            });
+                    
                     return routeRepository.save(route);
                 });
 

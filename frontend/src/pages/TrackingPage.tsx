@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { vehicleService } from '../services/vehicleService';
 import { gpsLocationService } from '../services/gpsLocationService';
+import { assignmentService } from '../services/assignmentService';
 import { Vehicle } from '../types/vehicle';
 import { GpsLocation, GpsLocationRequest } from '../types/gpsLocation';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useToast } from '../hooks/useToast';
+import Toast from '../components/Toast';
 import L from 'leaflet';
 
 // Fix for default marker icon
@@ -22,6 +25,7 @@ export default function TrackingPage() {
   const [latestLocation, setLatestLocation] = useState<GpsLocation | null>(null);
   const [loading, setLoading] = useState(true);
   const { isConnected, latestLocation: wsLocation } = useWebSocket();
+  const { toast, showToast, hideToast } = useToast();
   const [formData, setFormData] = useState<GpsLocationRequest>({
     vehicleId: '',
     latitude: 0,
@@ -53,11 +57,25 @@ export default function TrackingPage() {
 
   const loadVehicles = async () => {
     try {
-      const data = await vehicleService.getAll();
-      setVehicles(data);
-      if (data.length > 0 && !selectedVehicle) {
-        setSelectedVehicle(data[0].id);
-        setFormData({ ...formData, vehicleId: data[0].id });
+      const allVehicles = await vehicleService.getAll();
+      
+      // Filter: Only show vehicles that have active driver assignments
+      const vehiclesWithDrivers: Vehicle[] = [];
+      for (const vehicle of allVehicles) {
+        try {
+          const assignment = await assignmentService.getByVehicle(vehicle.id);
+          if (assignment.isActive) {
+            vehiclesWithDrivers.push(vehicle);
+          }
+        } catch (error) {
+          // No assignment for this vehicle, skip it
+        }
+      }
+      
+      setVehicles(vehiclesWithDrivers);
+      if (vehiclesWithDrivers.length > 0 && !selectedVehicle) {
+        setSelectedVehicle(vehiclesWithDrivers[0].id);
+        setFormData({ ...formData, vehicleId: vehiclesWithDrivers[0].id });
       }
     } catch (error) {
       console.error('Error loading vehicles:', error);
@@ -97,14 +115,14 @@ export default function TrackingPage() {
     try {
       console.log('Submitting location:', formData);
       await gpsLocationService.create(formData);
-      alert('Location updated successfully! Real-time update will appear via WebSocket.');
+      showToast('Location updated successfully! Real-time update will appear via WebSocket.', 'success');
       // Keep vehicle selected but reset coordinates
       setFormData({ ...formData, latitude: 0, longitude: 0, speed: 0, direction: 0 });
       // WebSocket will automatically update the location, but reload history
       await loadLocations();
     } catch (error: any) {
       console.error('Error updating location:', error);
-      alert(error.response?.data?.message || 'Error updating location. Check console for details.');
+      showToast(error.response?.data?.message || 'Error updating location. Check console for details.', 'error');
     }
   };
 
@@ -118,6 +136,13 @@ export default function TrackingPage() {
 
   return (
     <div>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+      
       <h2>GPS Tracking</h2>
       <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: isConnected ? '#d4edda' : '#f8d7da', borderRadius: '5px' }}>
         <strong>WebSocket Status:</strong> {isConnected ? '🟢 Connected (Real-time updates enabled)' : '🔴 Disconnected (Polling mode)'}
