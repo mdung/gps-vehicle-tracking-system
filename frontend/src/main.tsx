@@ -3,6 +3,11 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 
+// Polyfill for global (required by sockjs-client)
+if (typeof global === 'undefined') {
+  (window as any).global = window;
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

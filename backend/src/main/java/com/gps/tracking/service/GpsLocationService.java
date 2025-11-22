@@ -25,6 +25,7 @@ public class GpsLocationService {
     private final GpsLocationRepository locationRepository;
     private final VehicleRepository vehicleRepository;
     private final RouteRepository routeRepository;
+    private final WebSocketService webSocketService;
 
     @Transactional
     public GpsLocationResponse createLocation(GpsLocationRequest request) {
@@ -52,7 +53,12 @@ public class GpsLocationService {
                     return routeRepository.save(route);
                 });
 
-        return toResponse(saved);
+        GpsLocationResponse response = toResponse(saved);
+        
+        // Broadcast location update via WebSocket to all connected clients
+        webSocketService.broadcastLocationUpdate(response);
+
+        return response;
     }
 
     public List<GpsLocationResponse> getLocationsByVehicle(UUID vehicleId) {

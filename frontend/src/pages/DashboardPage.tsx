@@ -8,6 +8,7 @@ import { Vehicle } from '../types/vehicle';
 import { Driver } from '../types/driver';
 import { Route } from '../types/route';
 import { GpsLocation } from '../types/gpsLocation';
+import { useWebSocket } from '../hooks/useWebSocket';
 import L from 'leaflet';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -23,10 +24,23 @@ export default function DashboardPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [locations, setLocations] = useState<Map<string, GpsLocation>>(new Map());
   const [loading, setLoading] = useState(true);
+  const { isConnected, latestLocation: wsLocation } = useWebSocket();
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Update location when WebSocket receives update
+  useEffect(() => {
+    if (wsLocation) {
+      console.log('WebSocket location update received on dashboard:', wsLocation);
+      setLocations(prev => {
+        const newMap = new Map(prev);
+        newMap.set(wsLocation.vehicleId, wsLocation);
+        return newMap;
+      });
+    }
+  }, [wsLocation]);
 
   const loadData = async () => {
     try {
@@ -73,6 +87,9 @@ export default function DashboardPage() {
   return (
     <div>
       <h2>Dashboard</h2>
+      <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: isConnected ? '#d4edda' : '#f8d7da', borderRadius: '5px' }}>
+        <strong>WebSocket Status:</strong> {isConnected ? '🟢 Connected (Real-time updates enabled)' : '🔴 Disconnected (Polling mode)'}
+      </div>
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Total Vehicles</h3>

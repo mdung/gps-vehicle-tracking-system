@@ -4,6 +4,7 @@ import { vehicleService } from '../services/vehicleService';
 import { gpsLocationService } from '../services/gpsLocationService';
 import { Vehicle } from '../types/vehicle';
 import { GpsLocation, GpsLocationRequest } from '../types/gpsLocation';
+import { useWebSocket } from '../hooks/useWebSocket';
 import L from 'leaflet';
 
 // Fix for default marker icon
@@ -20,6 +21,7 @@ export default function TrackingPage() {
   const [locations, setLocations] = useState<GpsLocation[]>([]);
   const [latestLocation, setLatestLocation] = useState<GpsLocation | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isConnected, latestLocation: wsLocation } = useWebSocket();
   const [formData, setFormData] = useState<GpsLocationRequest>({
     vehicleId: '',
     latitude: 0,
@@ -38,6 +40,16 @@ export default function TrackingPage() {
       loadLatestLocation();
     }
   }, [selectedVehicle]);
+
+  // Update location when WebSocket receives update for selected vehicle
+  useEffect(() => {
+    if (wsLocation && wsLocation.vehicleId === selectedVehicle) {
+      console.log('WebSocket location update received for selected vehicle:', wsLocation);
+      setLatestLocation(wsLocation);
+      // Optionally reload locations to show in history
+      loadLocations();
+    }
+  }, [wsLocation, selectedVehicle]);
 
   const loadVehicles = async () => {
     try {
@@ -85,12 +97,11 @@ export default function TrackingPage() {
     try {
       console.log('Submitting location:', formData);
       await gpsLocationService.create(formData);
-      alert('Location updated successfully! Marker should appear on map.');
+      alert('Location updated successfully! Real-time update will appear via WebSocket.');
       // Keep vehicle selected but reset coordinates
       setFormData({ ...formData, latitude: 0, longitude: 0, speed: 0, direction: 0 });
-      // Reload to show new marker
+      // WebSocket will automatically update the location, but reload history
       await loadLocations();
-      await loadLatestLocation();
     } catch (error: any) {
       console.error('Error updating location:', error);
       alert(error.response?.data?.message || 'Error updating location. Check console for details.');
@@ -108,6 +119,9 @@ export default function TrackingPage() {
   return (
     <div>
       <h2>GPS Tracking</h2>
+      <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: isConnected ? '#d4edda' : '#f8d7da', borderRadius: '5px' }}>
+        <strong>WebSocket Status:</strong> {isConnected ? '🟢 Connected (Real-time updates enabled)' : '🔴 Disconnected (Polling mode)'}
+      </div>
 
       <div className="card">
         <h3>Update Location</h3>
