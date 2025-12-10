@@ -20,6 +20,15 @@
 │gps_locations│◄────────────────┘                                     │
 └─────────────┘                                                       │
       │                                                                │
+      │                  ┌─────────────┐                              │
+      │                  │fuel_records │◄─────────────────────────────┤
+      │                  └─────────────┘                              │
+      │                         │                                     │
+      │                         │                                     │
+      │                  ┌──────────────┐                             │
+      │                  │fuel_efficiency│◄────────────────────────────┤
+      │                  └──────────────┘                             │
+      │                                                                │
       └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -102,6 +111,65 @@ Stores GPS location updates from vehicles.
 - INDEX (vehicle_id, timestamp DESC)
 - INDEX (timestamp)
 
+### 6. fuel_records
+Stores fuel consumption and refueling records.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Unique identifier |
+| vehicle_id | UUID | FOREIGN KEY, NOT NULL | Reference to vehicles.id |
+| driver_id | UUID | FOREIGN KEY | Reference to drivers.id (optional) |
+| fuel_amount_liters | DECIMAL(10,3) | NOT NULL | Amount of fuel in liters |
+| fuel_cost | DECIMAL(10,2) | NOT NULL | Total cost of fuel |
+| cost_per_liter | DECIMAL(10,3) | NOT NULL | Cost per liter |
+| odometer_reading | DECIMAL(10,2) | | Vehicle odometer reading |
+| fuel_station | VARCHAR(100) | | Name of fuel station |
+| fuel_type | VARCHAR(50) | | Type of fuel (Gasoline, Diesel, etc.) |
+| record_type | VARCHAR(50) | NOT NULL | Type of record (REFUEL, CONSUMPTION_CALCULATION, MAINTENANCE) |
+| notes | TEXT | | Additional notes |
+| refuel_date | TIMESTAMP | NOT NULL | Date and time of refueling |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Creation timestamp |
+| updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Last update timestamp |
+
+**Indexes:**
+- PRIMARY KEY (id)
+- FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+- FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE SET NULL
+- INDEX (vehicle_id, refuel_date DESC)
+- INDEX (refuel_date)
+- INDEX (record_type)
+
+### 7. fuel_efficiency
+Stores calculated fuel efficiency metrics for vehicles and drivers.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Unique identifier |
+| vehicle_id | UUID | FOREIGN KEY, NOT NULL | Reference to vehicles.id |
+| driver_id | UUID | FOREIGN KEY | Reference to drivers.id (optional) |
+| period_start | DATE | NOT NULL | Start date of calculation period |
+| period_end | DATE | NOT NULL | End date of calculation period |
+| total_distance_km | DECIMAL(10,2) | NOT NULL | Total distance traveled in km |
+| total_fuel_consumed_liters | DECIMAL(10,3) | NOT NULL | Total fuel consumed in liters |
+| fuel_efficiency_km_per_liter | DECIMAL(10,3) | NOT NULL | Fuel efficiency in km/liter |
+| total_fuel_cost | DECIMAL(10,2) | NOT NULL | Total fuel cost |
+| cost_per_km | DECIMAL(10,3) | NOT NULL | Cost per kilometer |
+| number_of_refuels | INTEGER | NOT NULL | Number of refueling events |
+| average_cost_per_liter | DECIMAL(10,3) | | Average cost per liter |
+| calculation_period | VARCHAR(20) | NOT NULL | Period type (DAILY, WEEKLY, MONTHLY, QUARTERLY, YEARLY) |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Creation timestamp |
+| updated_at | TIMESTAMP | NOT NULL, DEFAULT NOW() | Last update timestamp |
+
+**Indexes:**
+- PRIMARY KEY (id)
+- FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+- FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE SET NULL
+- INDEX (vehicle_id, period_start, period_end)
+- INDEX (calculation_period)
+- INDEX (fuel_efficiency_km_per_liter)
+- INDEX (cost_per_km)
+- UNIQUE (vehicle_id, period_start, period_end, calculation_period)
+
 ### 5. routes
 Tracks routes taken by vehicles.
 
@@ -127,6 +195,31 @@ Tracks routes taken by vehicles.
 - INDEX (start_time)
 
 ## Data Flow
+
+### 6. Fuel Record Creation Flow
+```
+User → Add Fuel Record → fuel_records table
+  → Validate vehicle and driver
+  → Calculate cost per liter
+  → Store refuel information
+```
+
+### 7. Fuel Efficiency Calculation Flow
+```
+System → Calculate Efficiency → fuel_efficiency table
+  → Get fuel records for period
+  → Get route distance for period
+  → Calculate efficiency metrics
+  → Store or update efficiency record
+```
+
+### 8. Fuel Report Generation Flow
+```
+User → Generate Report → Aggregate data from fuel_records and fuel_efficiency
+  → Calculate summary statistics
+  → Identify inefficient vehicles/drivers
+  → Generate alerts and recommendations
+```
 
 ### 1. Vehicle Registration Flow
 ```
@@ -184,6 +277,18 @@ GPS Device → End Route → routes table
    - Vehicles and drivers can be ACTIVE or INACTIVE
    - Only ACTIVE vehicles/drivers appear in active lists
    - Inactive records are preserved for history
+
+5. **Fuel Management:**
+   - Each fuel record is linked to a vehicle and optionally a driver
+   - Fuel efficiency is calculated based on fuel consumption and distance traveled
+   - Efficiency records are unique per vehicle, period, and calculation type
+   - Cost tracking includes total cost, cost per liter, and cost per kilometer
+
+6. **Fuel Efficiency Calculation:**
+   - Efficiency is calculated as distance (km) / fuel consumed (liters)
+   - Requires both fuel records and completed routes for accurate calculation
+   - Different calculation periods (daily, weekly, monthly, etc.) are supported
+   - Historical efficiency data is preserved for trend analysis
 
 
 

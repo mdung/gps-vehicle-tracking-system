@@ -5,6 +5,8 @@ import DriversPage from './pages/DriversPage';
 import TrackingPage from './pages/TrackingPage';
 import ReportsPage from './pages/ReportsPage';
 import AssignmentsPage from './pages/AssignmentsPage';
+import FuelPage from './pages/FuelPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function Navigation() {
   const location = useLocation();
@@ -28,6 +30,9 @@ function Navigation() {
         <Link to="/assignments" className={location.pathname === '/assignments' ? 'active' : ''}>
           Assignments
         </Link>
+        <Link to="/fuel" className={location.pathname === '/fuel' ? 'active' : ''}>
+          Fuel Management
+        </Link>
         <Link to="/reports" className={location.pathname === '/reports' ? 'active' : ''}>
           Reports
         </Link>
@@ -47,6 +52,7 @@ function App() {
           <Route path="/drivers" element={<DriversPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
+          <Route path="/fuel" element={<ErrorBoundary><FuelPage /></ErrorBoundary>} />
           <Route path="/reports" element={<ReportsPage />} />
         </Routes>
       </div>

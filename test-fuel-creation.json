@@ -1,0 +1,13 @@
+{
+  "vehicleId": "replace-with-actual-vehicle-id",
+  "driverId": null,
+  "fuelAmountLiters": 45.5,
+  "fuelCost": 68.25,
+  "costPerLiter": 1.5,
+  "odometerReading": 15000.0,
+  "fuelStation": "Test Station",
+  "fuelType": "Gasoline",
+  "recordType": "REFUEL",
+  "notes": "Test fuel record",
+  "refuelDate": "2024-12-10T10:00:00"
+}
