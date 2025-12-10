@@ -16,6 +16,8 @@ const FuelPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [fuelReport, setFuelReport] = useState<FuelReport | null>(null);
+  const [efficiencyData, setEfficiencyData] = useState<any>(null);
+  const [efficiencyMetrics, setEfficiencyMetrics] = useState<any>(null);
   
   const { showToast } = useToast();
 
@@ -37,7 +39,8 @@ const FuelPage: React.FC = () => {
   // Report filters
   const [reportFilters, setReportFilters] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    endDate: new Date().toISOString().slice(0, 10)
+    endDate: new Date().toISOString().slice(0, 10),
+    vehicleId: ''
   });
 
   useEffect(() => {
@@ -143,6 +146,74 @@ const FuelPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateEfficiency = async () => {
+    if (!reportFilters.vehicleId) {
+      showToast('Please select a vehicle', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Get efficiency calculation
+      const efficiency = await fuelService.calculateFuelEfficiency(
+        reportFilters.vehicleId,
+        reportFilters.startDate,
+        reportFilters.endDate
+      );
+      
+      // Get fuel records for the period to calculate additional metrics
+      const fuelRecordsResponse = await fuelService.getFuelRecordsByVehicle(
+        reportFilters.vehicleId,
+        0,
+        100
+      );
+      
+      // Calculate metrics from the data
+      const metrics = calculateMetricsFromData(efficiency, fuelRecordsResponse.content);
+      
+      setEfficiencyData(efficiency);
+      setEfficiencyMetrics(metrics);
+      showToast('Efficiency calculated successfully', 'success');
+      
+    } catch (error) {
+      console.error('Error calculating efficiency:', error);
+      showToast('Failed to calculate efficiency. Ensure the vehicle has fuel records and routes in the selected period.', 'error');
+      // Set default/empty data on error
+      setEfficiencyData(null);
+      setEfficiencyMetrics(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateMetricsFromData = (efficiency: any, fuelRecords: any[]) => {
+    if (!efficiency || !fuelRecords.length) {
+      return {
+        averageEfficiency: 0,
+        costPerKm: 0,
+        totalDistance: 0,
+        totalFuelConsumed: 0,
+        totalCost: 0,
+        averageCostPerLiter: 0
+      };
+    }
+
+    const totalFuelConsumed = fuelRecords.reduce((sum, record) => sum + record.fuelAmountLiters, 0);
+    const totalCost = fuelRecords.reduce((sum, record) => sum + record.fuelCost, 0);
+    const averageCostPerLiter = totalCost / totalFuelConsumed;
+
+    return {
+      averageEfficiency: efficiency.fuelEfficiencyKmPerLiter || 0,
+      costPerKm: efficiency.costPerKm || 0,
+      totalDistance: efficiency.totalDistanceKm || 0,
+      totalFuelConsumed: totalFuelConsumed,
+      totalCost: totalCost,
+      averageCostPerLiter: averageCostPerLiter,
+      numberOfRefuels: fuelRecords.length
+    };
   };
 
   const calculateCostPerLiter = () => {
@@ -414,9 +485,185 @@ const FuelPage: React.FC = () => {
 
         {activeTab === 'efficiency' && (
           <div className="efficiency-tab">
-            <div className="efficiency-content">
-              <h3>Fuel Efficiency Analysis</h3>
-              <p>Efficiency analysis features will be implemented here.</p>
+            <div className="efficiency-controls">
+              <div className="filter-group">
+                <label>Vehicle</label>
+                <select
+                  value={reportFilters.vehicleId || ''}
+                  onChange={(e) => setReportFilters(prev => ({ ...prev, vehicleId: e.target.value }))}
+                >
+                  <option value="">All Vehicles</option>
+                  {vehicles.map(vehicle => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.licensePlate} - {vehicle.model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  value={reportFilters.startDate}
+                  onChange={(e) => setReportFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
+              <div className="filter-group">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  value={reportFilters.endDate}
+                  onChange={(e) => setReportFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                />
+              </div>
+              <button
+                onClick={calculateEfficiency}
+                className="btn btn-primary"
+                disabled={loading || !reportFilters.vehicleId}
+              >
+                {loading ? 'Calculating...' : 'Calculate Efficiency'}
+              </button>
+            </div>
+
+            {efficiencyMetrics ? (
+              <div className="efficiency-metrics">
+                <div className="metric-card">
+                  <div className="metric-value">{efficiencyMetrics.averageEfficiency.toFixed(1)}</div>
+                  <div className="metric-label">Average km/L</div>
+                </div>
+                <div className="metric-card warning">
+                  <div className="metric-value">{formatCurrency(efficiencyMetrics.costPerKm)}</div>
+                  <div className="metric-label">Cost per km</div>
+                </div>
+                <div className="metric-card success">
+                  <div className="metric-value">{efficiencyMetrics.totalDistance.toFixed(0)}</div>
+                  <div className="metric-label">Total km driven</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-value">{efficiencyMetrics.totalFuelConsumed.toFixed(1)}L</div>
+                  <div className="metric-label">Total fuel consumed</div>
+                </div>
+              </div>
+            ) : (
+              <div className="efficiency-metrics">
+                <div className="metric-card">
+                  <div className="metric-value">--</div>
+                  <div className="metric-label">Average km/L</div>
+                  <div className="metric-change">Select vehicle and calculate</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-value">--</div>
+                  <div className="metric-label">Cost per km</div>
+                  <div className="metric-change">Select vehicle and calculate</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-value">--</div>
+                  <div className="metric-label">Total km driven</div>
+                  <div className="metric-change">Select vehicle and calculate</div>
+                </div>
+                <div className="metric-card">
+                  <div className="metric-value">--</div>
+                  <div className="metric-label">Total fuel consumed</div>
+                  <div className="metric-change">Select vehicle and calculate</div>
+                </div>
+              </div>
+            )}
+
+            <div className="efficiency-charts">
+              <div className="chart-container">
+                <h4>Fuel Efficiency Analysis</h4>
+                {efficiencyData ? (
+                  <div className="efficiency-summary">
+                    <div className="summary-item">
+                      <strong>Period:</strong> {efficiencyData.periodStart} to {efficiencyData.periodEnd}
+                    </div>
+                    <div className="summary-item">
+                      <strong>Efficiency:</strong> {efficiencyData.fuelEfficiencyKmPerLiter.toFixed(2)} km/L
+                    </div>
+                    <div className="summary-item">
+                      <strong>Distance:</strong> {efficiencyData.totalDistanceKm.toFixed(1)} km
+                    </div>
+                    <div className="summary-item">
+                      <strong>Fuel Used:</strong> {efficiencyData.totalFuelConsumedLiters.toFixed(1)} L
+                    </div>
+                    <div className="summary-item">
+                      <strong>Total Cost:</strong> {formatCurrency(efficiencyData.totalFuelCost)}
+                    </div>
+                    <div className="summary-item">
+                      <strong>Refuels:</strong> {efficiencyData.numberOfRefuels}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="no-data">
+                    <p>Select a vehicle and date range, then click "Calculate Efficiency" to see detailed analysis.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="chart-container">
+                <h4>Vehicle Information</h4>
+                {reportFilters.vehicleId ? (
+                  <div className="vehicle-info">
+                    {(() => {
+                      const selectedVehicle = vehicles.find(v => v.id === reportFilters.vehicleId);
+                      return selectedVehicle ? (
+                        <div className="vehicle-details">
+                          <div className="detail-item">
+                            <strong>License Plate:</strong> {selectedVehicle.licensePlate}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Model:</strong> {selectedVehicle.model}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Type:</strong> {selectedVehicle.vehicleType}
+                          </div>
+                          <div className="detail-item">
+                            <strong>Status:</strong> {selectedVehicle.status}
+                          </div>
+                        </div>
+                      ) : (
+                        <p>Vehicle information not available</p>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className="no-data">
+                    <p>Select a vehicle to see vehicle information.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="efficiency-insights">
+              <h4>Analysis Tips</h4>
+              <div className="insights-grid">
+                <div className="insight-card info">
+                  <h5>How to Use</h5>
+                  <p>1. Select a vehicle from the dropdown</p>
+                  <p>2. Choose a date range (at least 1 week recommended)</p>
+                  <p>3. Click "Calculate Efficiency" to analyze</p>
+                </div>
+                <div className="insight-card success">
+                  <h5>Good Efficiency</h5>
+                  <p>Cars: 12-15 km/L</p>
+                  <p>Trucks: 6-10 km/L</p>
+                  <p>Motorcycles: 20-30 km/L</p>
+                </div>
+                <div className="insight-card warning">
+                  <h5>Factors Affecting Efficiency</h5>
+                  <p>• Driving habits and speed</p>
+                  <p>• Vehicle maintenance</p>
+                  <p>• Traffic conditions</p>
+                  <p>• Fuel quality</p>
+                </div>
+                <div className="insight-card">
+                  <h5>Data Requirements</h5>
+                  <p>Efficiency calculation requires:</p>
+                  <p>• Fuel records for the period</p>
+                  <p>• Route/distance data</p>
+                  <p>• At least 2 fuel entries</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
