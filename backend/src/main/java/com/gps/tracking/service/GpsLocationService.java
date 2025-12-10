@@ -28,6 +28,7 @@ public class GpsLocationService {
     private final RouteRepository routeRepository;
     private final VehicleDriverAssignmentRepository assignmentRepository;
     private final WebSocketService webSocketService;
+    private final GeofencingService geofencingService;
 
     @Transactional
     public GpsLocationResponse createLocation(GpsLocationRequest request) {
@@ -43,6 +44,14 @@ public class GpsLocationService {
         location.setTimestamp(request.getTimestamp() != null ? request.getTimestamp() : LocalDateTime.now());
 
         GpsLocation saved = locationRepository.save(location);
+
+        // Check for geofence violations
+        try {
+            geofencingService.checkGeofenceViolations(saved);
+        } catch (Exception e) {
+            // Log error but don't fail the GPS location save
+            System.err.println("Error checking geofence violations: " + e.getMessage());
+        }
 
         // Auto-create route if no active route exists
         routeRepository.findByVehicleIdAndStatus(request.getVehicleId(), "IN_PROGRESS")

@@ -6,6 +6,7 @@ import TrackingPage from './pages/TrackingPage';
 import ReportsPage from './pages/ReportsPage';
 import AssignmentsPage from './pages/AssignmentsPage';
 import FuelPage from './pages/FuelPage';
+import GeofencingPage from './pages/GeofencingPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function Navigation() {
@@ -33,6 +34,9 @@ function Navigation() {
         <Link to="/fuel" className={location.pathname === '/fuel' ? 'active' : ''}>
           Fuel Management
         </Link>
+        <Link to="/geofencing" className={location.pathname === '/geofencing' ? 'active' : ''}>
+          Geofencing & Alerts
+        </Link>
         <Link to="/reports" className={location.pathname === '/reports' ? 'active' : ''}>
           Reports
         </Link>
@@ -53,6 +57,7 @@ function App() {
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/fuel" element={<ErrorBoundary><FuelPage /></ErrorBoundary>} />
+          <Route path="/geofencing" element={<ErrorBoundary><GeofencingPage /></ErrorBoundary>} />
           <Route path="/reports" element={<ReportsPage />} />
         </Routes>
       </div>
