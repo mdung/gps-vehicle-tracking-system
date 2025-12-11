@@ -19,6 +19,7 @@ import { Vehicle } from '../types/vehicle';
 import { Driver } from '../types/driver';
 import { useToast } from '../hooks/useToast';
 import '../styles/tables.css';
+import '../styles/speedMonitoring.css';
 
 const SpeedMonitoringPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'violations' | 'history' | 'limits' | 'reports'>('violations');
@@ -270,14 +271,24 @@ const SpeedMonitoringPage: React.FC = () => {
   return (
     <div className="speed-monitoring-page">
       <div className="page-header">
-        <h1>Speed Monitoring & Violations</h1>
+        <div>
+          <h1>Speed Monitoring & Violations</h1>
+          <p style={{ margin: '5px 0 0 0', color: '#718096', fontSize: '14px' }}>
+            Monitor vehicle speeds, track violations, and ensure fleet safety compliance
+          </p>
+        </div>
         <div className="header-actions">
           {statistics && (
             <div className="violation-summary">
-              <span className="violation-count critical">{statistics.critical}</span>
-              <span className="violation-count severe">{statistics.severe}</span>
-              <span className="violation-count major">{statistics.major}</span>
-              <span className="violation-count minor">{statistics.minor}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: '15px' }}>
+                <span style={{ fontSize: '11px', color: '#718096', fontWeight: '600', marginBottom: '5px' }}>VIOLATIONS</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <span className="violation-count critical" title="Critical Violations">{statistics.critical}</span>
+                  <span className="violation-count severe" title="Severe Violations">{statistics.severe}</span>
+                  <span className="violation-count major" title="Major Violations">{statistics.major}</span>
+                  <span className="violation-count minor" title="Minor Violations">{statistics.minor}</span>
+                </div>
+              </div>
             </div>
           )}
           <button
@@ -285,14 +296,14 @@ const SpeedMonitoringPage: React.FC = () => {
             className="btn btn-primary"
             disabled={loading}
           >
-            Add Speed Limit
+            <span>📍</span> Add Speed Limit
           </button>
           <button
             onClick={() => setShowReportForm(true)}
             className="btn btn-secondary"
             disabled={loading}
           >
-            Generate Report
+            <span>📊</span> Generate Report
           </button>
         </div>
       </div>
@@ -583,27 +594,31 @@ const SpeedMonitoringPage: React.FC = () => {
           <div className="violations-tab">
             {/* Filters */}
             <div className="filters-section">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', gridColumn: '1 / -1' }}>
+                <span style={{ fontSize: '16px' }}>🔍</span>
+                <h4 style={{ margin: 0, color: '#4a5568', fontSize: '16px', fontWeight: '600' }}>Filter Violations</h4>
+              </div>
               <div className="filter-group">
-                <label>Vehicle</label>
+                <label>🚗 Vehicle</label>
                 <select
                   value={violationFilters.vehicleId}
                   onChange={(e) => setViolationFilters(prev => ({ ...prev, vehicleId: e.target.value }))}
                 >
-                  <option value="">All Vehicles</option>
+                  <option value="">All Vehicles ({vehicles.length})</option>
                   {vehicles.map(vehicle => (
                     <option key={vehicle.id} value={vehicle.id}>
-                      {vehicle.licensePlate}
+                      {vehicle.licensePlate} - {vehicle.model}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="filter-group">
-                <label>Driver</label>
+                <label>👤 Driver</label>
                 <select
                   value={violationFilters.driverId}
                   onChange={(e) => setViolationFilters(prev => ({ ...prev, driverId: e.target.value }))}
                 >
-                  <option value="">All Drivers</option>
+                  <option value="">All Drivers ({drivers.length})</option>
                   {drivers.map(driver => (
                     <option key={driver.id} value={driver.id}>
                       {driver.name}
@@ -612,7 +627,7 @@ const SpeedMonitoringPage: React.FC = () => {
                 </select>
               </div>
               <div className="filter-group">
-                <label>Severity</label>
+                <label>⚠️ Severity</label>
                 <select
                   value={violationFilters.severity}
                   onChange={(e) => setViolationFilters(prev => ({ ...prev, severity: e.target.value }))}
@@ -626,26 +641,39 @@ const SpeedMonitoringPage: React.FC = () => {
                 </select>
               </div>
               <div className="filter-group">
-                <label>Status</label>
+                <label>✅ Status</label>
                 <select
                   value={violationFilters.acknowledged}
                   onChange={(e) => setViolationFilters(prev => ({ ...prev, acknowledged: e.target.value }))}
                 >
-                  <option value="all">All</option>
-                  <option value="unacknowledged">Unacknowledged</option>
-                  <option value="acknowledged">Acknowledged</option>
+                  <option value="all">All Status</option>
+                  <option value="unacknowledged">⏳ Unacknowledged</option>
+                  <option value="acknowledged">✅ Acknowledged</option>
                 </select>
               </div>
             </div>
 
             {loading ? (
               <div className="loading-state">
-                <p>Loading violations...</p>
+                <div style={{ fontSize: '32px', marginBottom: '15px' }}>⏳</div>
+                <p>Loading speed violations...</p>
+                <div style={{ fontSize: '12px', color: '#a0aec0', marginTop: '10px' }}>
+                  Analyzing speed data and violation records
+                </div>
               </div>
             ) : violations.length === 0 ? (
               <div className="empty-state">
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>🚗💨</div>
                 <h3>No Speed Violations Found</h3>
-                <p>No speed violations match your current filters.</p>
+                <p>Great news! No speed violations match your current filters. Your fleet is driving safely within speed limits.</p>
+                <div className="alert-info">
+                  <p><strong>To monitor speed violations:</strong></p>
+                  <ul>
+                    <li>Ensure speed limits are configured for your routes</li>
+                    <li>GPS tracking is active on all vehicles</li>
+                    <li>Speed monitoring service is running</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="table-container">
@@ -705,6 +733,11 @@ const SpeedMonitoringPage: React.FC = () => {
                             className={`severity-badge ${violation.violationSeverity.toLowerCase()}`}
                             style={{ color: speedMonitoringService.getViolationSeverityColor(violation.violationSeverity) }}
                           >
+                            {violation.violationSeverity === 'CRITICAL' && '🚨'}
+                            {violation.violationSeverity === 'SEVERE' && '⚠️'}
+                            {violation.violationSeverity === 'MAJOR' && '🔶'}
+                            {violation.violationSeverity === 'MINOR' && '🟡'}
+                            {' '}
                             {speedMonitoringService.getViolationSeverityDisplayName(violation.violationSeverity)}
                           </span>
                         </td>
@@ -717,12 +750,15 @@ const SpeedMonitoringPage: React.FC = () => {
                               <button
                                 onClick={() => handleAcknowledgeViolation(violation.id)}
                                 className="btn-action primary"
+                                title="Acknowledge this violation"
                               >
-                                Acknowledge
+                                ✅ Acknowledge
                               </button>
                             )}
                             {violation.isAcknowledged && (
-                              <span className="status-badge active">Acknowledged</span>
+                              <span className="status-badge active" title="This violation has been acknowledged">
+                                ✅ Acknowledged
+                              </span>
                             )}
                           </div>
                         </td>
@@ -739,27 +775,31 @@ const SpeedMonitoringPage: React.FC = () => {
           <div className="history-tab">
             {/* Filters */}
             <div className="filters-section">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', gridColumn: '1 / -1' }}>
+                <span style={{ fontSize: '16px' }}>📊</span>
+                <h4 style={{ margin: 0, color: '#4a5568', fontSize: '16px', fontWeight: '600' }}>Filter Speed History</h4>
+              </div>
               <div className="filter-group">
-                <label>Vehicle</label>
+                <label>🚗 Vehicle</label>
                 <select
                   value={historyFilters.vehicleId}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, vehicleId: e.target.value }))}
                 >
-                  <option value="">All Vehicles</option>
+                  <option value="">All Vehicles ({vehicles.length})</option>
                   {vehicles.map(vehicle => (
                     <option key={vehicle.id} value={vehicle.id}>
-                      {vehicle.licensePlate}
+                      {vehicle.licensePlate} - {vehicle.model}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="filter-group">
-                <label>Driver</label>
+                <label>👤 Driver</label>
                 <select
                   value={historyFilters.driverId}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, driverId: e.target.value }))}
                 >
-                  <option value="">All Drivers</option>
+                  <option value="">All Drivers ({drivers.length})</option>
                   {drivers.map(driver => (
                     <option key={driver.id} value={driver.id}>
                       {driver.name}
@@ -768,25 +808,39 @@ const SpeedMonitoringPage: React.FC = () => {
                 </select>
               </div>
               <div className="filter-group">
-                <label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
                     checked={historyFilters.violationsOnly}
                     onChange={(e) => setHistoryFilters(prev => ({ ...prev, violationsOnly: e.target.checked }))}
+                    style={{ width: 'auto', margin: 0 }}
                   />
-                  Violations Only
+                  <span>⚠️ Violations Only</span>
                 </label>
               </div>
             </div>
 
             {loading ? (
               <div className="loading-state">
+                <div style={{ fontSize: '32px', marginBottom: '15px' }}>📊</div>
                 <p>Loading speed history...</p>
+                <div style={{ fontSize: '12px', color: '#a0aec0', marginTop: '10px' }}>
+                  Retrieving historical speed data and GPS records
+                </div>
               </div>
             ) : speedHistory.length === 0 ? (
               <div className="empty-state">
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>📈</div>
                 <h3>No Speed History Found</h3>
-                <p>No speed history records match your current filters.</p>
+                <p>No speed history records match your current filters. Speed data will appear here as vehicles are tracked.</p>
+                <div className="alert-info">
+                  <p><strong>Speed history includes:</strong></p>
+                  <ul>
+                    <li>Real-time speed recordings from GPS</li>
+                    <li>Speed limit compliance tracking</li>
+                    <li>Violation detection and logging</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="table-container">
@@ -854,9 +908,9 @@ const SpeedMonitoringPage: React.FC = () => {
                         </td>
                         <td>
                           {record.isViolation ? (
-                            <span className="status-badge danger">Violation</span>
+                            <span className="status-badge danger">⚠️ Violation</span>
                           ) : (
-                            <span className="status-badge active">Normal</span>
+                            <span className="status-badge active">✅ Normal</span>
                           )}
                         </td>
                       </tr>
@@ -872,18 +926,32 @@ const SpeedMonitoringPage: React.FC = () => {
           <div className="limits-tab">
             {loading ? (
               <div className="loading-state">
+                <div style={{ fontSize: '32px', marginBottom: '15px' }}>🚦</div>
                 <p>Loading speed limits...</p>
+                <div style={{ fontSize: '12px', color: '#a0aec0', marginTop: '10px' }}>
+                  Fetching configured speed zones and restrictions
+                </div>
               </div>
             ) : speedLimits.length === 0 ? (
               <div className="empty-state">
-                <h3>No Speed Limits Found</h3>
-                <p>Create your first speed limit to start monitoring.</p>
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>🚦</div>
+                <h3>No Speed Limits Configured</h3>
+                <p>Set up speed limits for different areas to enable automatic violation detection and monitoring.</p>
                 <button
                   onClick={() => setShowAddSpeedLimitForm(true)}
                   className="btn btn-primary"
                 >
-                  Add Speed Limit
+                  <span>📍</span> Create Your First Speed Limit
                 </button>
+                <div className="alert-info" style={{ marginTop: '25px' }}>
+                  <p><strong>Speed limit types you can create:</strong></p>
+                  <ul>
+                    <li>School zones with reduced limits</li>
+                    <li>Highway and freeway limits</li>
+                    <li>Business district restrictions</li>
+                    <li>Residential area limits</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="table-container">
@@ -970,14 +1038,24 @@ const SpeedMonitoringPage: React.FC = () => {
           <div className="reports-tab">
             {reports.length === 0 ? (
               <div className="empty-state">
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>📊</div>
                 <h3>No Reports Generated</h3>
-                <p>Generate your first speed monitoring report.</p>
+                <p>Create comprehensive speed monitoring reports to analyze driver behavior, compliance rates, and fleet performance.</p>
                 <button
                   onClick={() => setShowReportForm(true)}
                   className="btn btn-primary"
                 >
-                  Generate Report
+                  <span>📊</span> Generate Your First Report
                 </button>
+                <div className="alert-info" style={{ marginTop: '25px' }}>
+                  <p><strong>Available report types:</strong></p>
+                  <ul>
+                    <li>Violation summary reports</li>
+                    <li>Driver behavior analysis</li>
+                    <li>Fleet compliance overview</li>
+                    <li>Insurance and safety reports</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <div className="table-container">

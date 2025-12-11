@@ -9,6 +9,7 @@ import FuelPage from './pages/FuelPage';
 import GeofencingPage from './pages/GeofencingPage';
 import RouteOptimizationPage from './pages/RouteOptimizationPage';
 import SpeedMonitoringPage from './pages/SpeedMonitoringPage';
+import MaintenancePage from './pages/MaintenancePage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function Navigation() {
@@ -35,6 +36,9 @@ function Navigation() {
         </Link>
         <Link to="/fuel" className={location.pathname === '/fuel' ? 'active' : ''}>
           Fuel Management
+        </Link>
+        <Link to="/maintenance" className={location.pathname === '/maintenance' ? 'active' : ''}>
+          Maintenance
         </Link>
         <Link to="/geofencing" className={location.pathname === '/geofencing' ? 'active' : ''}>
           Geofencing & Alerts
@@ -65,6 +69,7 @@ function App() {
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/fuel" element={<ErrorBoundary><FuelPage /></ErrorBoundary>} />
+          <Route path="/maintenance" element={<ErrorBoundary><MaintenancePage /></ErrorBoundary>} />
           <Route path="/geofencing" element={<ErrorBoundary><GeofencingPage /></ErrorBoundary>} />
           <Route path="/route-optimization" element={<ErrorBoundary><RouteOptimizationPage /></ErrorBoundary>} />
           <Route path="/speed-monitoring" element={<ErrorBoundary><SpeedMonitoringPage /></ErrorBoundary>} />
