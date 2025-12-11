@@ -232,131 +232,191 @@ INSERT INTO maintenance_types (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Insert sample maintenance schedules
-INSERT INTO maintenance_schedules (
-    id, maintenance_type_id, schedule_type, mileage_interval, time_interval_days,
-    last_service_date, last_service_mileage, next_due_date, next_due_mileage
-) VALUES 
-(
-    '11111111-1111-1111-1111-111111111111',
-    '11111111-1111-1111-1111-111111111111',
-    'MILEAGE',
-    5000,
-    NULL,
-    CURRENT_DATE - INTERVAL '2 months',
-    45000,
-    CURRENT_DATE + INTERVAL '1 month',
-    50000
-),
-(
-    '22222222-2222-2222-2222-222222222222',
-    '22222222-2222-2222-2222-222222222222',
-    'MILEAGE',
-    10000,
-    NULL,
-    CURRENT_DATE - INTERVAL '3 months',
-    40000,
-    CURRENT_DATE + INTERVAL '2 months',
-    50000
-),
-(
-    '33333333-3333-3333-3333-333333333333',
-    '44444444-4444-4444-4444-444444444444',
-    'TIME',
-    NULL,
-    365,
-    CURRENT_DATE - INTERVAL '10 months',
-    NULL,
-    CURRENT_DATE + INTERVAL '2 months',
-    NULL
-)
-ON CONFLICT (id) DO NOTHING;
+-- Insert sample maintenance schedules (only if vehicles exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vehicles') 
+       AND EXISTS (SELECT 1 FROM vehicles LIMIT 1) THEN
+        
+        INSERT INTO maintenance_schedules (
+            id, vehicle_id, maintenance_type_id, schedule_type, mileage_interval, time_interval_days,
+            last_service_date, last_service_mileage, next_due_date, next_due_mileage
+        ) 
+        SELECT 
+            '11111111-1111-1111-1111-111111111111',
+            (SELECT id FROM vehicles LIMIT 1),
+            '11111111-1111-1111-1111-111111111111',
+            'MILEAGE',
+            5000,
+            NULL,
+            CURRENT_DATE - INTERVAL '2 months',
+            45000,
+            CURRENT_DATE + INTERVAL '1 month',
+            50000
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_schedules WHERE id = '11111111-1111-1111-1111-111111111111');
+        
+        INSERT INTO maintenance_schedules (
+            id, vehicle_id, maintenance_type_id, schedule_type, mileage_interval, time_interval_days,
+            last_service_date, last_service_mileage, next_due_date, next_due_mileage
+        ) 
+        SELECT 
+            '22222222-2222-2222-2222-222222222222',
+            (SELECT id FROM vehicles LIMIT 1),
+            '22222222-2222-2222-2222-222222222222',
+            'MILEAGE',
+            10000,
+            NULL,
+            CURRENT_DATE - INTERVAL '3 months',
+            40000,
+            CURRENT_DATE + INTERVAL '2 months',
+            50000
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_schedules WHERE id = '22222222-2222-2222-2222-222222222222');
+        
+        INSERT INTO maintenance_schedules (
+            id, vehicle_id, maintenance_type_id, schedule_type, mileage_interval, time_interval_days,
+            last_service_date, last_service_mileage, next_due_date, next_due_mileage
+        ) 
+        SELECT 
+            '33333333-3333-3333-3333-333333333333',
+            (SELECT id FROM vehicles LIMIT 1),
+            '44444444-4444-4444-4444-444444444444',
+            'TIME',
+            NULL,
+            365,
+            CURRENT_DATE - INTERVAL '10 months',
+            NULL,
+            CURRENT_DATE + INTERVAL '2 months',
+            NULL
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_schedules WHERE id = '33333333-3333-3333-3333-333333333333');
+    END IF;
+END $$;
 
--- Insert sample maintenance records
-INSERT INTO maintenance_records (
-    id, maintenance_type_id, service_date, service_mileage, service_provider,
-    labor_cost, parts_cost, total_cost, duration_hours, status, description
-) VALUES 
-(
-    '11111111-1111-1111-1111-111111111111',
-    '11111111-1111-1111-1111-111111111111',
-    CURRENT_DATE - INTERVAL '2 months',
-    45000,
-    'Quick Lube Express',
-    25.00,
-    50.00,
-    75.00,
-    1.0,
-    'COMPLETED',
-    'Regular oil change with synthetic oil'
-),
-(
-    '22222222-2222-2222-2222-222222222222',
-    '22222222-2222-2222-2222-222222222222',
-    CURRENT_DATE - INTERVAL '3 months',
-    40000,
-    'Tire Pro Service',
-    30.00,
-    20.00,
-    50.00,
-    0.5,
-    'COMPLETED',
-    'Tire rotation and pressure check'
-),
-(
-    '33333333-3333-3333-3333-333333333333',
-    '33333333-3333-3333-3333-333333333333',
-    CURRENT_DATE - INTERVAL '1 month',
-    47000,
-    'Brake Masters',
-    75.00,
-    150.00,
-    225.00,
-    2.0,
-    'COMPLETED',
-    'Brake pad replacement and rotor resurfacing'
-)
-ON CONFLICT (id) DO NOTHING;
+-- Insert sample maintenance records (only if vehicles exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vehicles') 
+       AND EXISTS (SELECT 1 FROM vehicles LIMIT 1) THEN
+        
+        INSERT INTO maintenance_records (
+            id, vehicle_id, maintenance_type_id, service_date, service_mileage, service_provider,
+            labor_cost, parts_cost, total_cost, duration_hours, status, description
+        ) 
+        SELECT 
+            '11111111-1111-1111-1111-111111111111',
+            (SELECT id FROM vehicles LIMIT 1),
+            '11111111-1111-1111-1111-111111111111',
+            CURRENT_DATE - INTERVAL '2 months',
+            45000,
+            'Quick Lube Express',
+            25.00,
+            50.00,
+            75.00,
+            1.0,
+            'COMPLETED',
+            'Regular oil change with synthetic oil'
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_records WHERE id = '11111111-1111-1111-1111-111111111111');
+        
+        INSERT INTO maintenance_records (
+            id, vehicle_id, maintenance_type_id, service_date, service_mileage, service_provider,
+            labor_cost, parts_cost, total_cost, duration_hours, status, description
+        ) 
+        SELECT 
+            '22222222-2222-2222-2222-222222222222',
+            (SELECT id FROM vehicles LIMIT 1),
+            '22222222-2222-2222-2222-222222222222',
+            CURRENT_DATE - INTERVAL '3 months',
+            40000,
+            'Tire Pro Service',
+            30.00,
+            20.00,
+            50.00,
+            0.5,
+            'COMPLETED',
+            'Tire rotation and pressure check'
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_records WHERE id = '22222222-2222-2222-2222-222222222222');
+        
+        INSERT INTO maintenance_records (
+            id, vehicle_id, maintenance_type_id, service_date, service_mileage, service_provider,
+            labor_cost, parts_cost, total_cost, duration_hours, status, description
+        ) 
+        SELECT 
+            '33333333-3333-3333-3333-333333333333',
+            (SELECT id FROM vehicles LIMIT 1),
+            '33333333-3333-3333-3333-333333333333',
+            CURRENT_DATE - INTERVAL '1 month',
+            47000,
+            'Brake Masters',
+            75.00,
+            150.00,
+            225.00,
+            2.0,
+            'COMPLETED',
+            'Brake pad replacement and rotor resurfacing'
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_records WHERE id = '33333333-3333-3333-3333-333333333333');
+    END IF;
+END $$;
 
--- Insert sample maintenance reminders
-INSERT INTO maintenance_reminders (
-    id, maintenance_schedule_id, reminder_type, reminder_date, due_date,
-    due_mileage, current_mileage, message, priority
-) VALUES 
-(
-    '11111111-1111-1111-1111-111111111111',
-    '11111111-1111-1111-1111-111111111111',
-    'DUE_SOON',
-    CURRENT_DATE,
-    CURRENT_DATE + INTERVAL '1 month',
-    50000,
-    48500,
-    'Oil change due in 1500 miles or 1 month',
-    'HIGH'
-),
-(
-    '22222222-2222-2222-2222-222222222222',
-    '22222222-2222-2222-2222-222222222222',
-    'DUE_SOON',
-    CURRENT_DATE + INTERVAL '1 month',
-    CURRENT_DATE + INTERVAL '2 months',
-    50000,
-    45000,
-    'Tire rotation due in 5000 miles or 2 months',
-    'MEDIUM'
-),
-(
-    '33333333-3333-3333-3333-333333333333',
-    '33333333-3333-3333-3333-333333333333',
-    'OVERDUE',
-    CURRENT_DATE - INTERVAL '1 week',
-    CURRENT_DATE - INTERVAL '1 week',
-    NULL,
-    NULL,
-    'Annual safety inspection is overdue',
-    'CRITICAL'
-)
-ON CONFLICT (id) DO NOTHING;
+-- Insert sample maintenance reminders (only if vehicles and schedules exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'vehicles') 
+       AND EXISTS (SELECT 1 FROM vehicles LIMIT 1)
+       AND EXISTS (SELECT 1 FROM maintenance_schedules WHERE id = '11111111-1111-1111-1111-111111111111') THEN
+        
+        INSERT INTO maintenance_reminders (
+            id, vehicle_id, maintenance_schedule_id, reminder_type, reminder_date, due_date,
+            due_mileage, current_mileage, message, priority
+        ) 
+        SELECT 
+            '11111111-1111-1111-1111-111111111111',
+            (SELECT id FROM vehicles LIMIT 1),
+            '11111111-1111-1111-1111-111111111111',
+            'DUE_SOON',
+            CURRENT_DATE,
+            CURRENT_DATE + INTERVAL '1 month',
+            50000,
+            48500,
+            'Oil change due in 1500 miles or 1 month',
+            'HIGH'
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_reminders WHERE id = '11111111-1111-1111-1111-111111111111');
+        
+        INSERT INTO maintenance_reminders (
+            id, vehicle_id, maintenance_schedule_id, reminder_type, reminder_date, due_date,
+            due_mileage, current_mileage, message, priority
+        ) 
+        SELECT 
+            '22222222-2222-2222-2222-222222222222',
+            (SELECT id FROM vehicles LIMIT 1),
+            '22222222-2222-2222-2222-222222222222',
+            'DUE_SOON',
+            CURRENT_DATE + INTERVAL '1 month',
+            CURRENT_DATE + INTERVAL '2 months',
+            50000,
+            45000,
+            'Tire rotation due in 5000 miles or 2 months',
+            'MEDIUM'
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_reminders WHERE id = '22222222-2222-2222-2222-222222222222')
+        AND EXISTS (SELECT 1 FROM maintenance_schedules WHERE id = '22222222-2222-2222-2222-222222222222');
+        
+        INSERT INTO maintenance_reminders (
+            id, vehicle_id, maintenance_schedule_id, reminder_type, reminder_date, due_date,
+            due_mileage, current_mileage, message, priority
+        ) 
+        SELECT 
+            '33333333-3333-3333-3333-333333333333',
+            (SELECT id FROM vehicles LIMIT 1),
+            '33333333-3333-3333-3333-333333333333',
+            'OVERDUE',
+            CURRENT_DATE - INTERVAL '1 week',
+            CURRENT_DATE - INTERVAL '1 week',
+            NULL,
+            NULL,
+            'Annual safety inspection is overdue',
+            'CRITICAL'
+        WHERE NOT EXISTS (SELECT 1 FROM maintenance_reminders WHERE id = '33333333-3333-3333-3333-333333333333')
+        AND EXISTS (SELECT 1 FROM maintenance_schedules WHERE id = '33333333-3333-3333-3333-333333333333');
+    END IF;
+END $$;
 
 -- Insert sample maintenance costs
 INSERT INTO maintenance_costs (
