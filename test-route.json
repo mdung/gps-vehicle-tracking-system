@@ -1,0 +1,38 @@
+{
+  "name": "Downtown Delivery Route",
+  "description": "Test route with multiple stops for enhanced table display",
+  "vehicleId": "11111111-1111-1111-1111-111111111111",
+  "optimizationType": "SHORTEST_DISTANCE",
+  "plannedStartTime": "2024-12-11T09:00:00",
+  "estimatedFuelCost": 25.50,
+  "notes": "Testing enhanced table styling",
+  "stops": [
+    {
+      "name": "Main Depot",
+      "address": "123 Main St, Downtown",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "stopType": "DEPOT",
+      "estimatedServiceTimeMinutes": 5,
+      "notes": "Starting point"
+    },
+    {
+      "name": "Customer A - Office Building",
+      "address": "456 Business Ave, Floor 15",
+      "latitude": 40.7589,
+      "longitude": -73.9857,
+      "stopType": "DELIVERY",
+      "estimatedServiceTimeMinutes": 15,
+      "notes": "Large office delivery"
+    },
+    {
+      "name": "Customer B - Retail Store",
+      "address": "789 Commerce St",
+      "latitude": 40.7831,
+      "longitude": -73.9712,
+      "stopType": "DELIVERY",
+      "estimatedServiceTimeMinutes": 10,
+      "notes": "Retail store delivery"
+    }
+  ]
+}

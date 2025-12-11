@@ -6,6 +6,7 @@ import { FuelRecord, FuelRecordRequest, FuelRecordType, FuelReport } from '../ty
 import { Vehicle } from '../types/vehicle';
 import { Driver } from '../types/driver';
 import { useToast } from '../hooks/useToast';
+import '../styles/tables.css';
 
 
 const FuelPage: React.FC = () => {
@@ -450,31 +451,59 @@ const FuelPage: React.FC = () => {
       <div className="tab-content">
         {activeTab === 'records' && (
           <div className="fuel-records-tab">
-            <div className="records-table">
-              <table>
+            <div className="table-container">
+              <div className="table-header">
+                <h3>Fuel Records</h3>
+                <p>Track fuel consumption and costs across your fleet</p>
+              </div>
+              <table className="enhanced-table">
                 <thead>
                   <tr>
                     <th>Date</th>
                     <th>Vehicle</th>
                     <th>Driver</th>
-                    <th>Amount (L)</th>
-                    <th>Cost</th>
+                    <th>Amount</th>
+                    <th>Total Cost</th>
                     <th>Cost/L</th>
                     <th>Station</th>
-                    <th>Type</th>
+                    <th>Fuel Type</th>
                   </tr>
                 </thead>
                 <tbody>
                   {fuelRecords.map(record => (
                     <tr key={record.id}>
-                      <td>{formatDate(record.refuelDate)}</td>
-                      <td>{record.vehicleLicensePlate}</td>
-                      <td>{record.driverName || 'N/A'}</td>
-                      <td>{record.fuelAmountLiters.toFixed(2)}</td>
-                      <td>{formatCurrency(record.fuelCost)}</td>
-                      <td>{formatCurrency(record.costPerLiter)}</td>
+                      <td>
+                        <div className="date-time">
+                          <div className="date">{new Date(record.refuelDate).toLocaleDateString()}</div>
+                          <div className="time">{new Date(record.refuelDate).toLocaleTimeString()}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="vehicle-info">
+                          <div className="license-plate">{record.vehicleLicensePlate}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="driver-info">
+                          <div className="details">{record.driverName || 'Unassigned'}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="metric-value">{record.fuelAmountLiters.toFixed(2)}</span>
+                        <span className="metric-unit">L</span>
+                      </td>
+                      <td>
+                        <span className="metric-value">{formatCurrency(record.fuelCost)}</span>
+                      </td>
+                      <td>
+                        <span className="metric-value">{formatCurrency(record.costPerLiter)}</span>
+                      </td>
                       <td>{record.fuelStation || 'N/A'}</td>
-                      <td>{record.fuelType}</td>
+                      <td>
+                        <span className={`fuel-type ${record.fuelType.toLowerCase()}`}>
+                          {record.fuelType}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

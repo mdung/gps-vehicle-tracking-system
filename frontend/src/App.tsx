@@ -7,6 +7,8 @@ import ReportsPage from './pages/ReportsPage';
 import AssignmentsPage from './pages/AssignmentsPage';
 import FuelPage from './pages/FuelPage';
 import GeofencingPage from './pages/GeofencingPage';
+import RouteOptimizationPage from './pages/RouteOptimizationPage';
+import SpeedMonitoringPage from './pages/SpeedMonitoringPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function Navigation() {
@@ -37,6 +39,12 @@ function Navigation() {
         <Link to="/geofencing" className={location.pathname === '/geofencing' ? 'active' : ''}>
           Geofencing & Alerts
         </Link>
+        <Link to="/route-optimization" className={location.pathname === '/route-optimization' ? 'active' : ''}>
+          Route Optimization
+        </Link>
+        <Link to="/speed-monitoring" className={location.pathname === '/speed-monitoring' ? 'active' : ''}>
+          Speed Monitoring
+        </Link>
         <Link to="/reports" className={location.pathname === '/reports' ? 'active' : ''}>
           Reports
         </Link>
@@ -58,6 +66,8 @@ function App() {
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/fuel" element={<ErrorBoundary><FuelPage /></ErrorBoundary>} />
           <Route path="/geofencing" element={<ErrorBoundary><GeofencingPage /></ErrorBoundary>} />
+          <Route path="/route-optimization" element={<ErrorBoundary><RouteOptimizationPage /></ErrorBoundary>} />
+          <Route path="/speed-monitoring" element={<ErrorBoundary><SpeedMonitoringPage /></ErrorBoundary>} />
           <Route path="/reports" element={<ReportsPage />} />
         </Routes>
       </div>

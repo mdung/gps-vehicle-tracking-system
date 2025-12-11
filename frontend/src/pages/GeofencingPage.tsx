@@ -12,6 +12,7 @@ import {
 } from '../types/geofencing';
 import { Vehicle } from '../types/vehicle';
 import { useToast } from '../hooks/useToast';
+import '../styles/tables.css';
 
 const GeofencingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'geofences' | 'alerts' | 'assignments'>('geofences');
@@ -457,11 +458,15 @@ const GeofencingPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="geofences-table">
-                <table>
+              <div className="table-container">
+                <div className="table-header">
+                  <h3>Geofences</h3>
+                  <p>Manage virtual boundaries and monitoring zones</p>
+                </div>
+                <table className="enhanced-table">
                   <thead>
                     <tr>
-                      <th>Name</th>
+                      <th>Geofence</th>
                       <th>Type</th>
                       <th>Shape</th>
                       <th>Alert Type</th>
@@ -474,17 +479,24 @@ const GeofencingPage: React.FC = () => {
                     {geofences.map(geofence => (
                       <tr key={geofence.id}>
                         <td>
-                          <div>
-                            <strong>{geofence.name}</strong>
+                          <div className="geofence-info">
+                            <div className="name">{geofence.name}</div>
                             {geofence.description && <div className="description">{geofence.description}</div>}
                           </div>
                         </td>
-                        <td>{geofencingService.getGeofenceTypeDisplayName(geofence.type)}</td>
+                        <td>
+                          <span className="optimization-type">
+                            {geofencingService.getGeofenceTypeDisplayName(geofence.type)}
+                          </span>
+                        </td>
                         <td>{geofence.shape}</td>
                         <td>{geofence.alertType.replace(/_/g, ' ')}</td>
-                        <td>{geofence.assignedVehicleCount || 0}</td>
                         <td>
-                          <span className={`status ${geofence.isActive ? 'active' : 'inactive'}`}>
+                          <span className="metric-value">{geofence.assignedVehicleCount || 0}</span>
+                          <span className="metric-unit">vehicles</span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${geofence.isActive ? 'active' : 'inactive'}`}>
                             {geofence.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
@@ -492,13 +504,13 @@ const GeofencingPage: React.FC = () => {
                           <div className="action-buttons">
                             <button
                               onClick={() => handleEdit(geofence)}
-                              className="btn btn-sm btn-secondary"
+                              className="btn-action secondary"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(geofence.id)}
-                              className="btn btn-sm btn-danger"
+                              className="btn-action danger"
                             >
                               Delete
                             </button>
@@ -533,8 +545,12 @@ const GeofencingPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="alerts-table">
-                <table>
+              <div className="table-container">
+                <div className="table-header">
+                  <h3>Active Alerts</h3>
+                  <p>Geofence violations and boundary crossings</p>
+                </div>
+                <table className="enhanced-table">
                   <thead>
                     <tr>
                       <th>Time</th>
@@ -548,17 +564,31 @@ const GeofencingPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {alerts.map(alert => (
-                      <tr key={alert.id} className={getSeverityClass(alert.severity)}>
-                        <td>{formatDate(alert.alertTime)}</td>
-                        <td>{alert.vehicleLicensePlate}</td>
-                        <td>{alert.geofenceName}</td>
+                      <tr key={alert.id}>
                         <td>
-                          <span className="alert-type">
-                            {geofencingService.getAlertTypeIcon(alert.alertType)} {alert.alertType.replace(/_/g, ' ')}
-                          </span>
+                          <div className="date-time">
+                            <div className="date">{new Date(alert.alertTime).toLocaleDateString()}</div>
+                            <div className="time">{new Date(alert.alertTime).toLocaleTimeString()}</div>
+                          </div>
                         </td>
                         <td>
-                          <span className={`severity ${alert.severity.toLowerCase()}`}>
+                          <div className="vehicle-info">
+                            <div className="license-plate">{alert.vehicleLicensePlate}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="geofence-info">
+                            <div className="name">{alert.geofenceName}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="alert-type">
+                            <span className="icon">{geofencingService.getAlertTypeIcon(alert.alertType)}</span>
+                            {alert.alertType.replace(/_/g, ' ')}
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`severity-badge ${alert.severity.toLowerCase()}`}>
                             {alert.severity}
                           </span>
                         </td>
@@ -567,7 +597,7 @@ const GeofencingPage: React.FC = () => {
                           {!alert.isAcknowledged && (
                             <button
                               onClick={() => handleAcknowledgeAlert(alert.id)}
-                              className="btn btn-sm btn-primary"
+                              className="btn-action primary"
                             >
                               Acknowledge
                             </button>

@@ -1,0 +1,456 @@
+/* Enhanced Table Styles */
+.enhanced-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin: 20px 0;
+}
+
+.enhanced-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.enhanced-table thead th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+.enhanced-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.enhanced-table tbody tr:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.enhanced-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.enhanced-table tbody td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #374151;
+  vertical-align: middle;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.planned {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.in-progress {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Alert severity badges */
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.severity-badge.low {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.severity-badge.medium {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.severity-badge.high {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.severity-badge.critical {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-action {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action.primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-action.primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-action.secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btn-action.secondary:hover {
+  background-color: #4b5563;
+}
+
+.btn-action.success {
+  background-color: #10b981;
+  color: white;
+}
+
+.btn-action.success:hover {
+  background-color: #059669;
+}
+
+.btn-action.warning {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.btn-action.warning:hover {
+  background-color: #d97706;
+}
+
+.btn-action.danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-action.danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-action.info {
+  background-color: #06b6d4;
+  color: white;
+}
+
+.btn-action.info:hover {
+  background-color: #0891b2;
+}
+
+/* Vehicle/Driver info */
+.vehicle-info, .driver-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vehicle-info .license-plate {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.vehicle-info .model, .driver-info .details {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Geofence info */
+.geofence-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.geofence-info .name {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.geofence-info .description {
+  font-size: 12px;
+  color: #6b7280;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Alert type with icons */
+.alert-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alert-type .icon {
+  font-size: 16px;
+}
+
+/* Efficiency score */
+.efficiency-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.efficiency-score .score {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.efficiency-score .rating {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Distance and metrics */
+.metric-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.metric-unit {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 2px;
+}
+
+/* Fuel type indicators */
+.fuel-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.fuel-type.gasoline {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.fuel-type.diesel {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
+
+.fuel-type.electric {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+/* Date formatting */
+.date-time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.date-time .date {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.date-time .time {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Optimization type */
+.optimization-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #f0f9ff;
+  color: #0369a1;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.empty-state h3 {
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+}
+
+/* Loading state */
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .enhanced-table {
+    font-size: 12px;
+  }
+  
+  .enhanced-table thead th,
+  .enhanced-table tbody td {
+    padding: 12px 16px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Table container */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.table-header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.table-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.table-header p {
+  margin: 4px 0 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Pagination */
+.table-pagination {
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+.pagination-info {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover {
+  background: #f3f4f6;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
